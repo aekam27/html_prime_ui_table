@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./primeui-4.1.15/themes/bluesky/theme.css" />
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/primeui/4.1.15/primeui.min.css" />
+
+    <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/primeui/4.1.15/primeui.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/x-tag/1.5.11/x-tag-core.min.js"></script>
+    <script type="text/javascript" src="primeui-4.1.15/primeelements.js"></script>
+
+
+    <script src="src/tableHTMLExport.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.3.5/jspdf.plugin.autotable.min.js"></script>
+    <script src="moment.js"></script>
+
+    <title></title>
+  </head>
+  <body style="padding: 10px;font-family: Montserrat !important ;">
+
+    <div>
+      <span style="font-size:12px">From:</span>   <input type="date" id="from" >
+      <span style="font-size:12px">To:</span>   <input type="date" id="to" >
+      <button id="go" class="btn btn-info">Search</button>
+
+    </div>
+    <div style="float:right;margin-top:-20px">
+      <select id="show" value="30">
+        <option value="30">30</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="200">200</option>
+      </select>
+    </div>
+    <div id="tblexpandable" style="font-family: Montserrat !important ;"></div>
+    <p class="lead"><button id="csv" class="btn btn-info">TO CSV</button>  <button id="pdf" class="btn btn-danger">TO PDF</button></p>
+    
+    
+    <script src="src/tableHTMLExport.js"></script>
+
+<script>
+  $('#csv').on('click',function(){
+    $(document.getElementsByTagName("table")).tableHTMLExport({type:'csv',filename:'data.csv'});
+  })
+  $('#pdf').on('click',function(){
+    $(document.getElementsByTagName("table")).tableHTMLExport({type:'pdf',filename:'data.pdf',orientation: 'p'});
+  })
+</script>
+
+<script>
+  $('#go').on('click',function(){
+    if(document.getElementById("from").value === "" && document.getElementById("to").value !== ""){
+      return
+    }
+    if(document.getElementById("to").value === "" && document.getElementById("from").value !== ""){
+      return
+    }
+    unixf=0
+    unixt=0
+    if (document.getElementById("to").value !== "" && document.getElementById("from").value !== ""){
+      unixf = (moment(document.getElementById("from").value, 'YYYY.MM.DD').unix())*1000;
+      unixt = (moment(document.getElementById("to").value, 'YYYY.MM.DD').unix())*1000;
+    }
+
+    fetch(`https://infinite-lowlands-22531.herokuapp.com/?from=${unixf}&to=${unixt}`)
+        .then(function (response) {
+            return response.json();
+      }).then(function (text) {
+
+    $('#tblexpandable').puidatatable({
+        caption: 'Foodbox Data',
+        paginator: {
+            rows: document.getElementById("show").value?parseInt(document.getElementById("show").value):30
+        },
+        striped:true,
+        columns: [
+            {rowToggler: true, bodyStyle: 'width:34px;border:none;',headerStyle: 'width:34px'},
+            {field: 'date', headerText: 'Date',bodyStyle:"font-size:13px;  word-wrap: break-word;border:none;text-align:justified;", content: function (value) {
+                              if (value.date === null) return "";
+                              return moment(value.date).format('DD/MM/YYYY HH:SS');
+                          }},
+            {field: 'id', headerText: 'ID',bodyStyle:"font-size:13px;  word-wrap: break-word;border:none;text-align:justified;"},
+            {field: 'completed', headerText: 'Completed',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'currentFamily', headerText: 'Current family',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'language', headerText: 'Language',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'numFamilies', headerText: 'Num Families',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'restartPrompt', headerText: 'Restart Prompt',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'step', headerText: 'Step',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'user', headerText: 'User',bodyStyle:"font-size:13px;  word-wrap: break-word;border:none;text-align:justified;"},
+        ],
+        datasource: text['result'],
+        expandableRows: true,
+        rowExpandMode: 'single',
+        expandedRowContent: function(data) {
+            var temp=`
+            <div style="margin-bottom:10px">Family Details:</div>
+            <table width="100%">
+                        <thead>
+                            <tr style="border: none;">
+                            <th style="font-weight:500;font-size:14px;border:none;">Adults</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Children</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Ethnicity</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Hispanic</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Receiving snap</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Weekly Income</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Young Children</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Zip Code</th>
+                            </tr>
+                        </thead>
+                      <tbody>`
+            data['families'].forEach((itemData) => {
+                temp += "<tr style='border: none;'>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.adults + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.children + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.ethnicity + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.hispanic + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.receivingSnap + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.weeklyIncome + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.youngChildren + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.zipCode + "</td></tr>";
+            });
+            return $('<div class="ui-grid" style="width:100%;border:none;"></div>')
+                    .append(temp)
+        }
+    });
+})
+  })
+</script>
+
+    <script>
+    $(function() {
+    fetch(`https://infinite-lowlands-22531.herokuapp.com/`)
+        .then(function (response) {
+            return response.json();
+      }).then(function (text) {
+
+    $('#tblexpandable').puidatatable({
+        caption: 'Foodbox Data',
+        paginator: {
+            rows: document.getElementById("show").value?parseInt(document.getElementById("show").value):30
+        },
+        striped:true,
+        columns: [
+            {rowToggler: true, bodyStyle: 'width:34px;border:none;',headerStyle: 'width:34px'},
+            {field: 'date', headerText: 'Date',bodyStyle:"font-size:13px;  word-wrap: break-word;border:none;text-align:justified;", content: function (value) {
+                              if (value.date === null) return "";
+                              return moment(value.date).format('DD/MM/YYYY HH:SS');
+                          }},
+            {field: 'id', headerText: 'ID',bodyStyle:"font-size:13px;  word-wrap: break-word;border:none;text-align:justified;"},
+            {field: 'completed', headerText: 'Completed',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'currentFamily', headerText: 'Current family',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'language', headerText: 'Language',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'numFamilies', headerText: 'Num Families',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'restartPrompt', headerText: 'Restart Prompt',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'step', headerText: 'Step',bodyStyle:"font-size:13px;border:none;text-align:justified;"},
+            {field: 'user', headerText: 'User',bodyStyle:"font-size:13px;  word-wrap: break-word;border:none;text-align:justified;"},
+        ],
+        datasource: text['result'],
+        expandableRows: true,
+        rowExpandMode: 'single',
+        expandedRowContent: function(data) {
+            var temp=`
+            <div style="margin-bottom:10px">Family Details:</div>
+            <table width="100%">
+                        <thead>
+                            <tr style="border: none;">
+                            <th style="font-weight:500;font-size:14px;border:none;">Adults</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Children</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Ethnicity</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Hispanic</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Receiving snap</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Weekly Income</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Young Children</th>
+                            <th style="font-weight:500;font-size:14px;border:none;">Zip Code</th>
+                            </tr>
+                        </thead>
+                      <tbody>`
+            data['families'].forEach((itemData) => {
+                temp += "<tr style='border: none;'>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.adults + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.children + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.ethnicity + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.hispanic + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.receivingSnap + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.weeklyIncome + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.youngChildren + "</td>";
+                temp += "<td style='text-align:center;font-size:11px;border:none;'>" + itemData.zipCode + "</td></tr>";
+            });
+            return $('<div class="ui-grid" style="width:100%;border:none;"></div>')
+                    .append(temp)
+        }
+    });
+})
+});
+    </script>
+
+    <script>
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+.ui-datatable-header{
+    background-color: transparent !important;
+    font-family: Montserrat !important ;
+    padding: 10px  !important;
+    border: none !important;
+}
+.ui-datatable .ui-paginator {
+    background-color: transparent !important;
+    font-family: Montserrat !important ;
+    padding: 10px  !important;
+    border: none !important;
+}
+.ui-datatable{
+    border-color: transparent !important;
+}
+
+.ui-state-default{
+    background-color: #405060 !important;
+    color: white !important;
+    border: none !important;
+    text-align:justify !important;
+
+}
+.ui-inputtext{
+    text-align: justify !important;
+    background-color: white !important;
+    color: black !important;
+}
+.ui-datatable-odd{
+    background-color: #e7e7e7 !important;
+}
