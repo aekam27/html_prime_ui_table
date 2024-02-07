@@ -71,7 +71,7 @@
       unixt = (moment(document.getElementById("to").value, 'YYYY.MM.DD').unix())*1000;
     }
 
-    fetch(`https://infinite-lowlands-22531.herokuapp.com/?from=${unixf}&to=${unixt}`)
+    fetch(`https://{your_domain}.com/?from=${unixf}&to=${unixt}`)
         .then(function (response) {
             return response.json();
       }).then(function (text) {
@@ -138,7 +138,7 @@
 
     <script>
     $(function() {
-    fetch(`https://infinite-lowlands-22531.herokuapp.com/`)
+    fetch(`https://{your_domain}.com/`)
         .then(function (response) {
             return response.json();
       }).then(function (text) {
